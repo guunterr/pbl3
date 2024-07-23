@@ -1,10 +1,12 @@
 #include <Wire.h>
 #include <ZumoShieldN.h>
-#include "route.h"
+#include "Route.h"
 
-void get_commands(int start, int end, direction_t starting_direction, char commands[13]);
+direction_t get_commands(int start, int end, direction_t starting_direction, char commands[13]);
 char command_from_directions(direction_t current_direction, direction_t new_direction);
 
+int route_index = 0;
+int current_direction = UP;
 
 void runme() {
   char commands[13] = { '0' };
@@ -20,33 +22,45 @@ void xy_from_vertex(int vertex, int* x, int* y) {
   *y = vertex / 4;
 }
 
-void get_commands(int start, int end, direction_t starting_direction, char commands[13]) {
-  int x= 0; int y= 0; int end_x= 0; int end_y= 0;
+bool next_command(char commands[13]){
+  memset(commands,0,13);
+  int current = route[route_index];
+  int end = route[route_index+1];
+  if(end == -1){
+    return false;
+  }
+  current_direction = get_commands(current, end, current_direction, commands);
+  route_index++;
+  return true;
+}
+
+direction_t get_commands(int start, int end, direction_t starting_direction, char commands[13]) {
+  int x= 0; int y= 0; int end_x= 0; int end_y= 0; int i = 0;
   xy_from_vertex(start, &x, &y);
-  int i = 0;
   xy_from_vertex(end, &end_x, &end_y);
   direction_t direction = starting_direction;
-  Serial.println(x);
-  Serial.println(y);
-  Serial.println(end_x);
-  Serial.println(end_y);
   while (x < end_x) {
     x++;
     commands[i++] = command_from_directions(direction, RIGHT);
+    direction = RIGHT;
   }
   while (x > end_x) {
     x--;
     commands[i++] = command_from_directions(direction, LEFT);
+    direction = LEFT;
   }
   while (y < end_y) {
     y++;
     commands[i++] = command_from_directions(direction, UP);
+    direction = UP;
   }
   while (y > end_y) {
     y--;
     commands[i++] = command_from_directions(direction, DOWN);
+    direction = DOWN;
   }
   commands[i] = '.';
+  return direction;
 }
 
 char command_from_directions(direction_t current_direction, direction_t new_direction) {
