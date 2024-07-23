@@ -2,7 +2,7 @@
 #include <ZumoShieldN.h>
 #include "Route.h"
 
-int route[10] = {0};
+int route[11] = {0};
 char commands[13] = {0};
 
 void print_array(int* array, int len){
@@ -17,9 +17,53 @@ void print_array(int* array, int len){
   delay(50);
 }
 
+int char_to_vertex_number(char c){
+  switch (c){
+    case '0':
+      return 0;
+      break;
+    case '1':
+      return 1;
+      break;
+    case '2':
+      return 2;
+      break;
+    case '3':
+      return 3;
+      break;
+    case '4':
+      return 4;
+      break;
+    case '5':
+      return 5;
+      break;
+    case '6':
+      return 6;
+      break;
+    case '7':
+      return 7;
+      break;
+    case '8':
+      return 8;
+      break;
+    case '9':
+      return 9;
+      break;
+    case 'a':
+      return 0xa;
+      break;
+    case 'b':
+      return 0xb;
+      break;
+    default:
+      return -1;
+      break;
+  }
+}
+
 void GetCommand(int route[11]){
   int index = 0;
-  char c;
+  char c; char last = 0;
   bool CommandComplete = false;
   
   while (!CommandComplete){
@@ -28,64 +72,45 @@ void GetCommand(int route[11]){
     if (c != '\n'){
       Serial.println(c);
     }
-    if (index >= 11){
-      Serial.println("Command too long");
-      delay(500);
-      while(Serial.available()){
-        Serial.read();
-      }
+    if (c == last){
+      Serial.println("Ignoring repeated input");
     }
-    // Add next vertex into route
-    switch (c){
-      case '*':
-        Serial.println("Deleting Commands");
-        index = 0;
-        memset(route,0,11);
-      case '\n':
-        break;
-      case '.':
-        route[index++] = -1;
-        CommandComplete = true;
-        break;
-      case '0':
-        route[index++] = 0;
-        break;
-      case '1':
-        route[index++] = 1;
-        break;
-      case '2':
-        route[index++] = 2;
-        break;
-      case '3':
-        route[index++] = 3;
-        break;
-      case '4':
-        route[index++] = 4;
-        break;
-      case '5':
-        route[index++] = 5;
-        break;
-      case '6':
-        route[index++] = 6;
-        break;
-      case '7':
-        route[index++] = 7;
-        break;
-      case '8':
-        route[index++] = 8;
-        break;
-      case '9':
-        route[index++] = 9;
-        break;
-      case 'a':
-        route[index++] = 0xa;
-        break;
-      case 'b':
-        route[index++] = 0xb;
-        break;
-      default:
-        Serial.println("Invalid Character!");
-        break;
+    else{
+      if (index >= 11){
+        Serial.println("Command too long");
+        delay(500);
+        while(Serial.available()){
+          Serial.read();
+        }
+      }
+      // Add next vertex into route
+      switch (c){
+        case '*':
+          Serial.println("Deleting Commands");
+          index = 0;
+          memset(route,0,11);
+          break;
+        case '\n':
+          break;
+        case '.':
+          route[index++] = -1;
+          CommandComplete = true;
+          break;
+        default:
+          int next_vertex = char_to_vertex_number(c);
+          if (next_vertex == -1){
+            Serial.println("Can't convert something that isnt 0x0 - 0xb");
+            break;
+          }
+          else if (index != 0){
+            if (next_vertex == route[index - 1]){
+              Serial.println("Ignoring repeated command");
+              break;
+            }
+          }
+          route[index++] = next_vertex;
+          break;
+      }
     }
   }
 }
@@ -95,12 +120,15 @@ void setup() {
   delay(500);
   Serial.println("please input command");
   GetCommand(route);
-  print_array(route, 10);
+  print_array(route, 11);
   button.waitForPress();
   delay(100);
-  setup_state_machine();
+  while(next_command(commands)){
+    Serial.println(commands);
+  }
+  // setup_state_machine();
 }
 
 void loop(){
-  state_machine();
+  // state_machine();
 }

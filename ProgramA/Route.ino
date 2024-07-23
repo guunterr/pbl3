@@ -7,15 +7,6 @@ char command_from_directions(direction_t current_direction, direction_t new_dire
 int route_index = 0;
 int current_direction = UP;
 
-void runme() {
-  char commands[13] = { '0' };
-  Serial.println("Testing");
-  get_commands(1, 0xa, UP, commands);
-  Serial.println(commands);
-  button.waitForPress();
-  delay(100);
-}
-
 void xy_from_vertex(int vertex, int* x, int* y) {
   *x = vertex % 4;
   *y = vertex / 4;
@@ -23,8 +14,9 @@ void xy_from_vertex(int vertex, int* x, int* y) {
 
 bool next_command(char commands[13]){
   memset(commands,0,13);
-  int current = route[route_index];
-  int end = route[route_index+1];
+  int current; int end;
+  current = route[route_index];
+  end = route[route_index+1];
   if(end == -1){
     return false;
   }
