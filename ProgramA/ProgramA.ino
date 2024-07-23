@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <ZumoShieldN.h>
+#include "Route.h"
 
 int route[10] = {0};
 char commands[13] = {0};
@@ -87,7 +88,6 @@ void GetCommand(int route[11]){
         break;
     }
   }
-  
 }
 
 void setup() {
@@ -99,10 +99,6 @@ void setup() {
   button.waitForPress();
   delay(100);
   setup_state_machine();
-  while(next_command(commands)){
-    Serial.println(commands);
-  }
-
 }
 
 void loop(){

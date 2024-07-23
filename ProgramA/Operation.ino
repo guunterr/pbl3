@@ -9,7 +9,7 @@
 #define COMMAND_MAX 20
 
 int  state;
-int dir;
+direction_t dir;
 int command_index=0;
 bool DEBUG = true;
 bool SHOW_DELTA = false;
@@ -17,9 +17,9 @@ bool SHOW_SENSORS = false;
 float initial_heading;
 float NORTH, EAST, SOUTH, WEST;
 
-enum direction_state{
-  UP, RIGHT, DOWN, LEFT, 
-};
+// enum direction_state{
+//   UP, RIGHT, DOWN, LEFT, 
+// };
 
 // コンパスのCalibration
 void setup_compass() {
@@ -169,7 +169,7 @@ void entering(){
   motors.setSpeeds(70,70);
   delay(ENTERING_SECOND);
   motors.setSpeeds(0,0);
-  switch (command[command_index]){
+  switch (commands[command_index]){
     case 'l':
       Serial.println("Rotating Left");
       state = ROTATE_L;
@@ -344,10 +344,6 @@ void setup_state_machine() {
   dir = UP;
 }
 
-bool next_command(char * command){
-  return true;
-}
-
 void state_machine(){
   switch (state){
     case FORWARD:
@@ -369,7 +365,7 @@ void state_machine(){
       rotate_right_90();
       break;
     case FINISH:
-      if(next_command()){
+      if(next_command(commands)){
         //動き続ける
         state = SETTLED_INTERSECTION;
       }
