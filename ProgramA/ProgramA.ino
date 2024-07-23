@@ -36,6 +36,10 @@ void GetCommand(int route[11]){
     }
     // Add next vertex into route
     switch (c){
+      case '*':
+        Serial.println("Deleting Commands");
+        index = 0;
+        memset(route,0,11);
       case '\n':
         break;
       case '.':
