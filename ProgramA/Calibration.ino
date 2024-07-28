@@ -1,16 +1,8 @@
 #include <Wire.h>
 #include <ZumoShieldN.h>
 
-void test_mag_reading(){
-  Serial.println("Testing mag reading");
-  
-  for(int i = 0; i < 1000; i++){
-    imu.readMag();
-  }
-  Serial.println("Done");
-}
-
 float get_compass_heading(int trials){
+  //1ms/ read, trials = ms taken to read
   ZumoIMU::vector<int32_t> avg = {0, 0, 0};
 
   for(int i = 0; i < trials; i ++) {
@@ -31,7 +23,7 @@ void calibrate_compass() {
 
   motors.setLeftSpeed(100);
   motors.setRightSpeed(-100);
-
+  //Calibrate longer and slower
   for (int index = 0; index < 1000; index++) {
     // Take a reading of the magnetic vector and store it in compass.m
     imu.readMag();

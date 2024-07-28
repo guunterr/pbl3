@@ -6,6 +6,7 @@ int route[11] = {0};
 char commands[13] = {0};
 
 void print_array(int* array, int len){
+  //Pretty print an array of ints
   delay(50);
   Serial.print("[");
   for(int i = 0; i < len-1; i++){
@@ -18,6 +19,8 @@ void print_array(int* array, int len){
 }
 
 int char_to_vertex_number(char c){
+  // Convert vertex names as chars to vertex labels
+  //Returns -1 for a failed conversion -> invalid character inputted
   switch (c){
     case '0':
       return 0;
@@ -67,18 +70,19 @@ void GetCommand(int route[11]){
   bool CommandComplete = false;
   
   while (!CommandComplete){
+    // Wait for a character in our buffer
     while(!Serial.available()){}
     c = Serial.read();
     if (c != '\n'){
+      //Debug print
       Serial.println(c);
-    }
-    if (c == last){
-      Serial.println("Ignoring repeated input");
     }
     else{
       if (index >= 11){
+        //Discard overly long inputs
         Serial.println("Command too long");
         delay(500);
+        //Consume buffer
         while(Serial.available()){
           Serial.read();
         }
@@ -91,6 +95,7 @@ void GetCommand(int route[11]){
           memset(route,0,11);
           break;
         case '\n':
+          //Ignore newlines
           break;
         case '.':
           route[index++] = -1;
@@ -103,6 +108,7 @@ void GetCommand(int route[11]){
             break;
           }
           else if (index != 0){
+            //Ignore repeated commands
             if (next_vertex == route[index - 1]){
               Serial.println("Ignoring repeated command");
               break;
