@@ -126,8 +126,9 @@ void setup() {
   setup_state_machine();
   // test_mag_reading();
   delay(100);
+  rotate_left_90(UP);
 }
 
 void loop(){
-  state_machine();
+  // state_machine();
 }
