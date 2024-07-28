@@ -26,6 +26,7 @@ bool next_command(char commands[13]){
 }
 
 direction_t get_commands(int start, int end, direction_t starting_direction, char commands[13]) {
+  //Move left-right, then move up
   int x= 0; int y= 0; int end_x= 0; int end_y= 0; int i = 0;
   xy_from_vertex(start, &x, &y);
   xy_from_vertex(end, &end_x, &end_y);
