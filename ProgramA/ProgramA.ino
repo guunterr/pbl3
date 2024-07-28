@@ -122,13 +122,12 @@ void setup() {
   GetCommand(route);
   print_array(route, 11);
   button.waitForPress();
+  delay(500);
+  setup_state_machine();
+  // test_mag_reading();
   delay(100);
-  while(next_command(commands)){
-    Serial.println(commands);
-  }
-  // setup_state_machine();
 }
 
 void loop(){
-  // state_machine();
+  state_machine();
 }
