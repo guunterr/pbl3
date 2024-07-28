@@ -1,21 +1,11 @@
 #include <Wire.h>
 #include <ZumoShieldN.h>
-#include "Route.h"
 
 direction_t get_commands(int start, int end, direction_t starting_direction, char commands[13]);
 char command_from_directions(direction_t current_direction, direction_t new_direction);
 
 int route_index = 0;
 int current_direction = UP;
-
-void runme() {
-  char commands[13] = { '0' };
-  Serial.println("Testing");
-  get_commands(1, 0xa, UP, commands);
-  Serial.println(commands);
-  button.waitForPress();
-  delay(100);
-}
 
 void xy_from_vertex(int vertex, int* x, int* y) {
   *x = vertex % 4;
@@ -24,8 +14,9 @@ void xy_from_vertex(int vertex, int* x, int* y) {
 
 bool next_command(char commands[13]){
   memset(commands,0,13);
-  int current = route[route_index];
-  int end = route[route_index+1];
+  int current; int end;
+  current = route[route_index];
+  end = route[route_index+1];
   if(end == -1){
     return false;
   }
@@ -35,6 +26,7 @@ bool next_command(char commands[13]){
 }
 
 direction_t get_commands(int start, int end, direction_t starting_direction, char commands[13]) {
+  //Move left-right, then move up
   int x= 0; int y= 0; int end_x= 0; int end_y= 0; int i = 0;
   xy_from_vertex(start, &x, &y);
   xy_from_vertex(end, &end_x, &end_y);
