@@ -6,6 +6,9 @@
 #define TURN_L_90 1600
 #define ENTERING_SECOND 800
 
+#define TURN_P_COEFF 2.5
+#define TURN_P_OFFSET -5
+
 #define COMMAND_MAX 20
 
 int state;
@@ -227,7 +230,8 @@ void rotate_left_90(direction_t turn_dir) {
       motors.setSpeeds(-100, 100);
       //P  control needed here
       //delay (20 @ 10 degree delta, 200 @ 90 delta)
-      delay(20);
+      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
+
     } else {
       motors.setSpeeds(0, 0);
       delay(50);
@@ -235,7 +239,7 @@ void rotate_left_90(direction_t turn_dir) {
       Serial.println(degree);
       if (angleDifference(degree, goal_degree) < 2) break;
       motors.setSpeeds(-100, 100);
-      delay(20);
+      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     }
   }
   motors.setSpeeds(0, 0);
@@ -273,15 +277,15 @@ void rotate_right_90() {
       degree = get_compass_heading(10);
       Serial.println(degree);
       float degree_tmp = degree + 360;
-      if (angleDifference(degree_tmp, goal_degree) < 5) break;
+      if (angleDifference(degree_tmp, goal_degree) < 2) break;
       motors.setSpeeds(100, -100);
-      delay(50);
+      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     } else {
       degree = get_compass_heading(10);
       Serial.println(degree);
-      if (angleDifference(degree, goal_degree) < 5) break;
+      if (angleDifference(degree, goal_degree) < 2) break;
       motors.setSpeeds(100, -100);
-      delay(50);
+      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     }
   }
   motors.setSpeeds(0, 0);
@@ -318,15 +322,15 @@ void rotate_back() {
       degree = get_compass_heading(10);
       Serial.println(degree);
       float degree_tmp = degree + 360;
-      if (angleDifference(degree_tmp, goal_degree) < 5) break;
+      if (angleDifference(degree_tmp, goal_degree) < 2) break;
       motors.setSpeeds(100, -100);
-      delay(50);
+      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     } else {
       degree = get_compass_heading(10);
       Serial.println(degree);
-      if (angleDifference(degree, goal_degree) < 5) break;
+      if (angleDifference(degree, goal_degree) < 2) break;
       motors.setSpeeds(100, -100);
-      delay(50);
+      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     }
   }
   motors.setSpeeds(0, 0);
