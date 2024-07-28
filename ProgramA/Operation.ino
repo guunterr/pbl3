@@ -6,6 +6,7 @@
 #define TURN_L_90 1600
 #define ENTERING_SECOND 800
 
+#define TURN_P_MINIMUM_DELAY 50
 #define TURN_P_COEFF 2.5
 #define TURN_P_OFFSET -5
 #define ANGLE_THRESHOLD 2
@@ -20,7 +21,7 @@ direction_t dir;
 int command_index = 0;
 bool DEBUG = true;
 bool SHOW_DELTA = false;
-bool SHOW_SENSORS = false;
+bool SHOW_SENSORS = true;
 float initial_heading;
 float NORTH, EAST, SOUTH, WEST;
 
@@ -132,7 +133,7 @@ void update_reflectances() {
 
 //交差点に到達したかをboolで返す
 bool is_cross() {
-  reflectances.update();
+  update_reflectances();
   return ((reflectances.value(1) + reflectances.value(2) + reflectances.value(3)) / 3 > REF_THRESHOLD)
          || ((reflectances.value(4) + reflectances.value(5) + reflectances.value(6)) / 3 > REF_THRESHOLD);  // &&から||に変更
 }
@@ -234,7 +235,7 @@ void rotate_left_90(direction_t turn_dir) {
       motors.setSpeeds(-100, 100);
       //P  control needed here
       //delay (20 @ 10 degree delta, 200 @ 90 delta)
-      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
+      delay(max(TURN_P_MINIMUM_DELAY, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
 
     } else {
       motors.setSpeeds(0, 0);
@@ -243,7 +244,7 @@ void rotate_left_90(direction_t turn_dir) {
       Serial.println(degree);
       if (angleDifference(degree, goal_degree) < ANGLE_THRESHOLD) break;
       motors.setSpeeds(-100, 100);
-      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
+      delay(max(TURN_P_MINIMUM_DELAY, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     }
   }
   motors.setSpeeds(0, 0);
@@ -252,10 +253,10 @@ void rotate_left_90(direction_t turn_dir) {
 }
 
 //右に90度回転
-void rotate_right_90() {
+void rotate_right_90(direction_t turn_dir) {
   float degree = get_compass_heading(10);  // 現在の角度を取得
   float goal_degree;
-  switch (dir) {
+  switch (turn_dir) {
     case UP:
       goal_degree = EAST;
       dir = RIGHT;
@@ -278,18 +279,22 @@ void rotate_right_90() {
 
   while (1) {
     if (static_degree > 270) {
+      motors.setSpeeds(0, 0);
+      delay(50);
       degree = get_compass_heading(10);
       Serial.println(degree);
       float degree_tmp = degree + 360;
       if (angleDifference(degree_tmp, goal_degree) < ANGLE_THRESHOLD) break;
       motors.setSpeeds(100, -100);
-      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
+      delay(max(TURN_P_MINIMUM_DELAY, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     } else {
+      motors.setSpeeds(0, 0);
+      delay(50);
       degree = get_compass_heading(10);
       Serial.println(degree);
       if (angleDifference(degree, goal_degree) < ANGLE_THRESHOLD) break;
       motors.setSpeeds(100, -100);
-      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
+      delay(max(TURN_P_MINIMUM_DELAY, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     }
   }
   motors.setSpeeds(0, 0);
@@ -297,10 +302,10 @@ void rotate_right_90() {
   state = FORWARD;
 }
 
-void rotate_back() {
+void rotate_back(direction_t turn_dir) {
   float degree = get_compass_heading(10);  // 現在の角度を取得
   float goal_degree;
-  switch (dir) {
+  switch (turn_dir) {
     case UP:
       goal_degree = SOUTH;
       dir = DOWN;
@@ -323,18 +328,22 @@ void rotate_back() {
 
   while (1) {
     if (static_degree > 180) {
+      motors.setSpeeds(0, 0);
+      delay(50);
       degree = get_compass_heading(10);
       Serial.println(degree);
       float degree_tmp = degree + 360;
       if (angleDifference(degree_tmp, goal_degree) < ANGLE_THRESHOLD) break;
       motors.setSpeeds(100, -100);
-      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
+      delay(max(TURN_P_MINIMUM_DELAY, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     } else {
+      motors.setSpeeds(0, 0);
+      delay(50);
       degree = get_compass_heading(10);
       Serial.println(degree);
       if (angleDifference(degree, goal_degree) < ANGLE_THRESHOLD) break;
       motors.setSpeeds(100, -100);
-      delay(max(20, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
+      delay(max(TURN_P_MINIMUM_DELAY, (int) TURN_P_COEFF * angleDifference(degree, goal_degree) + TURN_P_OFFSET));
     }
   }
   motors.setSpeeds(0, 0);
@@ -347,6 +356,9 @@ void setup_state_machine() {
   setup_compass();
   delay(2000);
   // 初期化
+  next_command(commands);
+  Serial.println(commands);
+  delay(100);
   state = FORWARD;
   dir = UP;
 }
@@ -357,7 +369,7 @@ void state_machine() {
       forward();
       break;
     case BACK:
-      rotate_back();
+      rotate_back(dir);
       break;
     case REACHED_INTERSECTION:
       back_step();
@@ -369,11 +381,13 @@ void state_machine() {
       rotate_left_90(dir);
       break;
     case ROTATE_R:
-      rotate_right_90();
+      rotate_right_90(dir);
       break;
     case FINISH:
       if (next_command(commands)) {
         //動き続ける
+        Serial.println(commands);
+        delay(100);
         state = SETTLED_INTERSECTION;
       } else {
         // Finish
