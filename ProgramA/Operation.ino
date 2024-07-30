@@ -4,13 +4,15 @@
 #define REF_THRESHOLD 400
 #define TURN_R_90 1700
 #define TURN_L_90 1600
-#define ENTERING_SECOND 700
+#define ENTERING_SECOND 500
+
+#define ENTERING_SPEED 100
 
 #define TURN_P_MINIMUM_DELAY 20
 #define TURN_P_COEFF 2.5
 #define TURN_P_OFFSET -5
 #define ANGLE_THRESHOLD 2
-#define TURN_SPEED 90
+#define TURN_SPEED 100
 #define TURN_ANGLE_READ_TIME 15
 
 #define TRACE_BASE_SPEED 40
@@ -149,7 +151,7 @@ void back_step() {
 
 //back_step後、交差点の中心まで移動
 void settled_intersection() {
-  motors.setSpeeds(60, 60);
+  motors.setSpeeds(ENTERING_SPEED, ENTERING_SPEED);
   delay(ENTERING_SECOND);
   motors.setSpeeds(0, 0);
   state = GET_INSTRUCTION;
@@ -182,6 +184,7 @@ void get_instruction(){
 
 void turn(float angle, int direction){
   //direction = -1 -> left, 1 -> right
+  int stage = 0;
   float degree = get_compass_heading(TURN_ANGLE_READ_TIME);
   float start_degree = degree;
   float target_degree = normalizeAngle(start_degree + ((float) direction) * angle);
@@ -190,7 +193,7 @@ void turn(float angle, int direction){
   Serial.println(target_degree);
   
 
-  while(true){
+  while(stage < 2){
     // motors.setSpeeds(0, 0);
     // delay(200);
     degree = get_compass_heading(TURN_ANGLE_READ_TIME);
@@ -199,11 +202,12 @@ void turn(float angle, int direction){
       Serial.println(degree);
       Serial.println(angle_diff);
     }
-    if (angle_diff < ANGLE_THRESHOLD) break;
     motors.setSpeeds(direction * TURN_SPEED, -direction * TURN_SPEED);
+    if (stage == 0 && angle_diff < ANGLE_THRESHOLD) stage++;
+    if (stage == 1 && angle_diff > ANGLE_THRESHOLD) break;
     // delay(max(TURN_P_MINIMUM_DELAY, (int) TURN_P_COEFF * angle_diff + TURN_P_OFFSET));
   }
-  delay(TURN_P_MINIMUM_DELAY * 5);
+  // motors.setSpeeds(-direction * TURN_SPEED, direction * TURN_SPEED);
   Serial.println(get_compass_heading(TURN_ANGLE_READ_TIME));
   motors.setSpeeds(0, 0);
   Serial.println("Entering forward state");

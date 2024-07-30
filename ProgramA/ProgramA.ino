@@ -124,7 +124,7 @@ void GetCommand(int route[11]){
 
 void setup() {
   Serial.begin(9600);
-  delay(500);
+  delay(1500);
   Serial.println("please input command");
   GetCommand(route);
   print_array(route, 11);
