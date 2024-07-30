@@ -4,6 +4,7 @@
 
 int route[11] = {0};
 char commands[13] = {0};
+bool spin = true;
 
 void print_array(int* array, int len){
   //Pretty print an array of ints
@@ -77,47 +78,47 @@ void GetCommand(int route[11]){
       //Debug print
       Serial.println(c);
     }
-    else{
-      if (index >= 11){
-        //Discard overly long inputs
-        Serial.println("Command too long");
-        delay(500);
-        //Consume buffer
-        while(Serial.available()){
-          Serial.read();
-        }
-      }
-      // Add next vertex into route
-      switch (c){
-        case '*':
-          Serial.println("Deleting Commands");
-          index = 0;
-          memset(route,0,11);
-          break;
-        case '\n':
-          //Ignore newlines
-          break;
-        case '.':
-          route[index++] = -1;
-          CommandComplete = true;
-          break;
-        default:
-          int next_vertex = char_to_vertex_number(c);
-          if (next_vertex == -1){
-            Serial.println("Can't convert something that isnt 0x0 - 0xb");
-            break;
-          }
-          else if (index != 0){
-            //Ignore repeated commands
-            if (next_vertex == route[index - 1]){
-              Serial.println("Ignoring repeated command");
-              break;
-            }
-          }
-          route[index++] = next_vertex;
-          break;
+
+    if (index >= 11){
+      //Discard overly long inputs
+      Serial.println("Command too long");
+      delay(500);
+      //Consume buffer
+      while(Serial.available()){
+        Serial.read();
       }
     }
+    // Add next vertex into route
+    switch (c){
+      case '*':
+        Serial.println("Deleting Commands");
+        index = 0;
+        memset(route,0,11);
+        break;
+      case '\n':
+        //Ignore newlines
+        break;
+      case '.':
+        route[index++] = -1;
+        CommandComplete = true;
+        break;
+      default:
+        int next_vertex = char_to_vertex_number(c);
+        if (next_vertex == -1){
+          Serial.println("Can't convert something that isnt 0x0 - 0xb");
+          break;
+        }
+        else if (index != 0){
+          //Ignore repeated commands
+          if (next_vertex == route[index - 1]){
+            Serial.println("Ignoring repeated command");
+            break;
+          }
+        }
+        route[index++] = next_vertex;
+        break;
+    }
+
   }
 }
 
@@ -128,13 +129,12 @@ void setup() {
   GetCommand(route);
   print_array(route, 11);
   button.waitForPress();
-  delay(500);
+  delay(200);
   setup_state_machine();
   // test_mag_reading();
-  delay(100);
-  rotate_left_90(UP);
+  spin = true;
 }
 
 void loop(){
-  // state_machine();
+  state_machine();
 }
